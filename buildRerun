@@ -1,0 +1,34 @@
+#!/bin/sh
+# Default values
+port1=8080
+port2=8080
+
+# Function to output port values
+output_ports() {
+  echo "Local  port: $port1"
+  echo "Docker port: $port2"
+}
+
+# Parse command line options
+while getopts ":p:" opt; do
+  case $opt in
+    p)
+      IFS=':' read -r p1 p2 <<< "$OPTARG"
+      # Update port1 and port2 if provided, otherwise use default
+      port1=${p1:-$port1}
+      port2=${p2:-$port2}
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+output_ports
+./mvnw clean package
+docker build -t spring-boot-docker .
+docker run -p "$port1":"$port2" spring-boot-docker
